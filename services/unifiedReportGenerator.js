@@ -186,7 +186,7 @@ function buildSupportClientSection(sc) {
 
   children.push(
     subLabel('1. Mails Reçus'),
-    bodyText(`Nombre total de mails reçus : ${sc.mailsTotal ?? 0}`, { bold: true }),
+  //  bodyText(`Nombre total de mails reçus : ${sc.mailsTotal ?? 0}`, { bold: true }),
     new Table({ width: { size: 14500, type: WidthType.DXA }, columnWidths: totalsCols, rows: [totalsHeader, totalsRow] }),
     subLabel('2. Dossiers Assignés'),
     bodyText(`Nombre total de dossiers assignés : ${sc.dossiersAssignesTotal ?? 0}`, { bold: true }),
