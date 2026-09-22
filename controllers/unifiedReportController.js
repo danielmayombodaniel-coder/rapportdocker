@@ -1,5 +1,5 @@
 import { buildReportDataForDate } from '../services/unifiedReportDataBuilder.js';
-import { generateUnifiedReport } from '../services/unifiedReportGenerator.js';
+import { generateServiceReport, generateUnifiedReport } from '../services/unifiedReportGenerator.js';
 import { convertDocxToPdf } from '../services/docxToPdf.js';
 
 /**
@@ -81,6 +81,32 @@ export const generateUnifiedReportForDate = async (req, res) => {
             error: 'Erreur lors de la génération du rapport unifié',
             message: error.message 
         });
+    }
+};
+
+export const generateServiceReportForDate = async (req, res) => {
+    const service = req.query.service;
+    const serviceNames = {
+        supportClient: 'support-client',
+        controleur: 'controleur',
+        operateurSaisie: 'operateur-saisie',
+    };
+
+    if (!Object.prototype.hasOwnProperty.call(serviceNames, service)) {
+        return res.status(400).json({ error: 'Service de rapport invalide.' });
+    }
+
+    try {
+        const { date } = req.query;
+        const reportData = await buildReportDataForDate(date);
+        const docxBuffer = await generateServiceReport(reportData, service);
+        const filename = `rapport-${serviceNames[service]}-${date || new Date().toISOString().slice(0, 10)}.docx`;
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(docxBuffer);
+    } catch (error) {
+        console.error('Erreur lors de la génération du rapport de service:', error);
+        res.status(error.status || 500).json({ error: error.message || 'Erreur lors de la génération du rapport de service' });
     }
 };
 

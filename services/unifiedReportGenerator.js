@@ -403,4 +403,48 @@ export async function generateUnifiedReport(reportData) {
   return Packer.toBuffer(doc);
 }
 
+export async function generateServiceReport(reportData, service) {
+  const section = service === 'supportClient'
+    ? buildSupportClientSection(reportData.supportClient || { hasData: false })
+    : service === 'controleur'
+      ? (() => {
+          const built = buildControleurSection(reportData.controleur || { hasData: false }, 'I');
+          return [built.heading, ...built.content];
+        })()
+      : buildOperateurSection(reportData.operateurSaisie || { hasData: false }, 'I');
+  const serviceTitles = {
+    supportClient: 'RAPPORT SUPPORT CLIENT',
+    controleur: 'RAPPORT CONTRÔLEUR',
+    operateurSaisie: 'RAPPORT OPÉRATEUR DE SAISIE',
+  };
+  const titlePage = [
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 60 },
+      children: [new TextRun({ text: serviceTitles[service], bold: true, color: COLOR_TITLE, size: 40, font: FONT })],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 300 },
+      children: [new TextRun({ text: reportData.dateLabel || '', italics: true, size: 22, font: FONT })],
+    }),
+    ...(service === 'supportClient' && reportData.introduction ? [subLabel(' '), bodyText(reportData.introduction)] : []),
+  ];
+
+  const doc = new Document({
+    styles: { default: { document: { run: { font: FONT, size: 21 } } } },
+    sections: [{
+      properties: {
+        page: {
+          size: { orientation: PageOrientation.LANDSCAPE },
+          margin: { top: 700, bottom: 700, left: 700, right: 700 },
+        },
+      },
+      children: [...titlePage, ...section],
+    }],
+  });
+
+  return Packer.toBuffer(doc);
+}
+
 export default generateUnifiedReport;
